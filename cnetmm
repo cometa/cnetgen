@@ -1,0 +1,335 @@
+#!/bin/bash
+#
+# Script to setup multiple macvlan interfaces to allow for testing
+# from a set of MAC addresses, without affecting the host main
+# interface.
+#
+# NOTE: For flexibility we do not start cnetgen from this script. This
+# allows the user to decide if they want to have multiple cnetgen (or
+# other tools) running against a configured set of virtual interfaces.
+#
+# NOTE: This script is Linux-centric at the moment, but could be
+# engineered to support creating MacOSX/FreeBSD virtual interfaces.
+
+# Command line options:
+#
+# start
+#  Create the virtual interfaces.
+#
+# stop
+#  Clean shutdown of the virtual interfaces.
+#
+# status
+#  Useful information on the current active state.
+#
+# clean
+#   Should NOT normally be used, since it does not perform clean
+#   dhclient shutdowns, so the DHCP server providing the IP addresses
+#   to the virtual interfaces could run out of addresses if a normal
+#   stop shutdown is not performed. This is only for cleaning up a
+#   system after some failure where some recorded $RUNDIR state is
+#   missing.
+
+# The following values can be over-ridden in the optionally supplied
+# configuration file if needed. It is simply sourced, so the usual
+# security caveats apply for such simple bash usage.
+
+# Name of hardware network interface to be used: e.g. "eth0":
+HWIFACE=eth0
+
+# Vector of interfaces to create:
+VLANS=(cnmm0 cnmm1 cnmm2 cnmm3)
+# sys==system-supplied otherwise a standard 48-bit MAC address
+VMACS=(sys sys sys sys)
+
+# Options that are unlikely to need to be changed:
+RUNDIR=/var/run/cnetmm
+STATEUP=$RUNDIR/up
+
+[ -x /bin/echo ] || exit 0
+[ -x /sbin/ip ] || exit 0
+[ -x /sbin/dhclient ] || exit 0
+[ -x /usr/bin/id ] || exit 0
+
+# Some systems do not have the shell $EUID available so use id:
+euid=$(/usr/bin/id -u)
+if [ "$euid" -ne "0" ]; then
+  /bin/echo -e "Priviledged access required. Use \"sudo\"."
+  exit 1
+fi
+
+POSITIONAL=()
+while [[ $# -gt 0 ]]; do
+  key="$1"
+  case $key in
+    -c|--config)
+      CFGFILE="$2"
+      shift
+      shift
+      ;;
+    *)
+      POSITIONAL+=("$1")
+      shift
+      ;;
+  esac
+done
+set -- "${POSITIONAL[@]}"
+
+# Allow defaults to be over-ridden by config file:
+if [ ! -z "$CFGFILE" ]; then
+  if [ -f $CFGFILE ]; then
+    source $CFGFILE
+  else
+    /bin/echo -e "WARNING: --config file \"$CFGFILE\" specified but not found."
+  fi
+fi
+
+# Marker for cnetmm active:
+rundir_up() {
+  if [ ! -d "$RUNDIR" ] ; then
+    if ! mkdir -p "$RUNDIR" ; then
+      /bin/echo -e "Cannot create $RUNDIR"
+      exit 1
+    fi
+  fi
+  if [ ! -r "$STATEUP" ] ; then
+    if ! :> "$STATEUP" ; then
+      /bin/echo -e "Cannot initialise $STATEUP"
+      exit 1
+    fi
+  fi
+}
+
+# Get set of VLANS for use with grep -E:
+get_vset() {
+  count=${#VLANS[@]}
+  idx=0
+  while [ "$idx" -lt "$count" ]; do
+    if [ "$idx" -ne "0" ]; then
+      /bin/echo -n "|"
+    fi
+    /bin/echo -n "${VLANS[$idx]}"
+    let "idx++"
+  done
+}
+
+# Find PID for dhclient process:
+pidofproc() {
+  local pidfile
+  pidfile=$RUNDIR/dhclient_$1.pid
+  specified=
+
+  if [ -n "${pidfile:-}" ]; then
+    if [ -e "$pidfile" ]; then
+      if [ -r "$pidfile" ]; then
+        read pid < "$pidfile"
+        if [ -n "${pid:-}" ]; then
+          # "kill -0" will not terminate, but does allow for a simple permissions check:
+          if $(kill -0 "${pid:-}" 2> /dev/null); then
+            /bin/echo "$pid" || true
+            return 0
+          elif ps "${pid:-}" >/dev/null 2>&1; then
+            /bin/echo "$pid" || true
+            return 0 # program is running, but not owned by this user
+          else
+            return 1 # program is dead and /var/run pid file exists
+          fi
+        fi
+      else
+        return 4 # pid file not readable, hence status is unknown.
+      fi
+    else
+      # pid file does not exist, try to find the pid nevertheless
+      status="0"
+      pid=$(ps -A -o pid,args | grep /sbin/dhclient | grep $1 | awk '{print $1}') || status="$?"
+      if [ "$status" = 0 ]; then
+        /bin/echo "$pid" || true
+        return 0 # program is running (but without corresponding .pid file)
+      else
+        return 3 # program is not running
+      fi
+    fi
+  fi
+  if [ "$specified" ]; then
+    return 3 # almost certain it is not running
+  fi
+  return 4 # Unable to determine status
+}
+
+# Take down specific interface:
+vdown() {
+  # arg1 H/W interface
+  # arg2 macvlan interface
+
+  # Try clean release and shutdown first:
+  /sbin/dhclient -r -pf $RUNDIR/dhclient_$2.pid -lf $RUNDIR/dhclient_$2.leases $2
+  if [ "$?" = 0 ]; then
+    rm -f $RUNDIR/dhclient_$2.leases
+  else
+    local status="0"
+    local dhcpid=$(pidofproc $2) || status="$?"
+    if [ "$status" = 0 ]; then
+      /bin/echo -e "dhcpid "$dhcpid
+      kill -9 $dhcpid
+      rm -f $RUNDIR/dhclient_$2.pid $RUNDIR/dhclient_$2.leases
+    else
+      /bin/echo -e "Failed (status $status) terminating dhclient for virtual interface $2"
+    fi
+  fi
+  # Delete link:
+  if [ -e /sys/class/net/$2 ]; then
+    /sbin/ip link set $2 down
+    /sbin/ip link del link $1 $2 type macvlan
+    if [ "$?" != 0 ]; then
+      /bin/echo -e "Failed to delete virtual interface $2"
+    fi
+  fi
+}
+
+# Bring interface up:
+vup() {
+  # arg1 H/W interface name
+  # arg2 virtual interface name
+  # [arg3] optional MAC address for virtual interface
+
+  #local address=${3:-}
+  local address=""
+  if [ ! -z $3 ]; then
+    address="address $3"
+  fi
+
+  /sbin/ip link add link $1 $2 $address type macvlan
+  if [ "$?" = 0 ]; then
+    /sbin/ip link set $2 up
+    if [ "$?" = 0 ]; then
+      # dhclient will run in the background:
+      /sbin/dhclient -pf $RUNDIR/dhclient_$2.pid -lf $RUNDIR/dhclient_$2.leases $2
+      if [ "$?" != 0 ]; then
+        /bin/echo -e "Failed to create DHCP client for virtual link $2"
+        vdown $1 $2
+      fi
+    else
+      /bin/echo -e "Failed to bring up virtual link $2"
+      vdown $1 $2
+    fi
+  else
+    /bin/echo -e "Failed to create virtual link $2 for H/W interface $1"
+  fi
+}
+
+# Bring up all interfaces:
+bring_up() {
+  # call vup for each interface
+  count=${#VLANS[@]}
+  idx=0
+  while [ "$idx" -lt "$count" ]; do
+    if [ "${VMACS[$idx]}" = "sys" ]; then
+      vup "$HWIFACE" "${VLANS[$idx]}"
+    else
+      vup "$HWIFACE" "${VLANS[$idx]}" "${VMACS[$idx]}"
+    fi
+    let "idx++"
+  done
+}
+
+# Take down all active interfaces:
+take_down() {
+  # call vdown for each interface
+  count=${#VLANS[@]}
+  idx=0
+  while [ "$idx" -lt "$count" ]; do
+    vdown "$HWIFACE" "${VLANS[$idx]}"
+    let "idx++"
+  done
+}
+
+do_stop() {
+  if [ -r "$STATEUP" ] ; then
+    take_down
+    rm -f "$STATEUP"
+    sleep 10
+  else
+    /bin/echo -e "Not active"
+  fi
+}
+
+case "$1" in
+start)
+  if [ -r "$STATEUP" ] ; then
+    /bin/echo -e "Already active. Use:\r\n\t$0 stop\r\nto terminate previous configuration."
+    exit 1
+  else
+    # NOTE: We may need/want to change the underlying system ARP handling by:
+    #  echo 2 > /proc/sys/net/ipv4/conf/eth0/arp_announce
+    #  echo 1 > /proc/sys/net/ipv4/conf/eth0/arp_ignore
+    # CHECK options required:DECIDE
+    rundir_up
+    bring_up
+  fi
+  ;;
+stop)
+  do_stop
+  ;;
+status)
+  if [ -r "$STATEUP" ] ; then
+    vset=$(get_vset)
+    status="0"
+    ifaces=$(basename -a /sys/class/net/* | grep -E $vset) || status="$?"
+    if [ "$status" = 0 ]; then
+      /bin/echo -e "Active virtual interfaces:"
+      for iface in $ifaces; do
+        /bin/echo -ne " $iface"
+        dhcpid=$(pidofproc $iface) || status="$?"
+        if [ "$status" = 0 ]; then
+          /bin/echo -e " (dhclient $dhcpid)"
+#       elif [ "$status" = 4 ]; then
+#         /bin/echo -e "(Could not access PID file)"
+        else
+          /bin/echo -e " (NO dhclient)"
+        fi
+      done
+    else
+      /bin/echo -e "No virtual interfaces active"
+    fi
+  else
+    /bin/echo -e "Not active"
+  fi
+  ;;
+clean)
+  /bin/echo -ne "Normal stop... "
+  do_stop
+  #
+  /bin/echo -ne "Forcibly removing stale state..."
+  vset=$(get_vset)
+  status="0"
+  pids=$(ps -A -o pid,args | grep /sbin/dhclient | grep -E $vset | awk '{print $1}') || status="$?"
+  if [ "$status" = 0 ]; then
+    for pid in $pids; do
+      /bin/echo -ne "kill $pid..."
+      kill -9 $pid
+    done
+  fi
+  #
+  # Take down all links
+  status="0"
+  ifaces=$(basename -a /sys/class/net/* | grep -E $vset) || status="$?"
+  if [ "$status" = 0 ]; then
+    /bin/echo -ne "ifaces $ifaces..."
+    for iface in $ifaces; do
+      vdown "$HWIFACE" "$iface"
+      /bin/echo -ne "del $iface..."
+    done
+  fi
+  #
+  # Ensure no stale state:
+  rm -rf "$RUNDIR"
+  #
+  /bin/echo -e "Done"
+  ;;
+*)
+  /bin/echo "Usage: $0 [-c <configfile>] {start|stop|status|clean}"
+  exit 1
+  ;;
+esac
+
+exit 0

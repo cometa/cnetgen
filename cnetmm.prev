@@ -1,0 +1,169 @@
+#!/bin/bash
+#
+# Script to setup multiple macvlan interfaces to allow for testing
+# from a set of MAC addresses, without affecting the host main
+# interface.
+#
+# NOTE: For flexibility we do not start cnetgen from this script. This
+# allows the user to decide if they want to have multiple cnetgen (or
+# other tools) running against a configured set of virtual interfaces.
+
+# Name of hardware network interface to be used: e.g. "eth0":
+HWIFACE=eth0
+
+NUMVLAN=4
+
+#------------------------------------------------------------------------------
+
+RUNDIR=/var/run/cnetmm
+STATEUP=$RUNDIR/up
+PREFIX=cnmm
+
+#------------------------------------------------------------------------------
+
+if [[ $EUID -ne 0 ]]; then
+  /bin/echo "Priviledged access required. Use \"sudo\"."
+  exit 1
+fi
+
+[ -x /bin/echo ] || exit 0
+[ -x /sbin/ip ] || exit 0
+[ -x /sbin/dhclient ] || exit 0
+
+# TODO: provide for command-line configuration file:
+#[ -f cnetmm.cfg ] && . cnetmm.cfg
+
+# TODO: For simplicity should just require a configuration file listing the macvlan interfaces to create
+# e.g.
+#  mac0 type macvlan
+#  mac1 address 12:34:56:78:9A:BC type macvlan
+
+# if test -f ${cfg} ; then
+#   source ${cfg}
+# fi
+
+# optional number of interfaces to setup
+# optional config file with MACs to use
+# optional config file containing "dhcp" or fixed IPv4 and iPv6 addresses to use for interface
+# MAYBE:	<name>,[<mac>],dhcp|<IPv4>/<mask>[,<IPv6>]...]
+# Actually simplest is just to source config file:
+#  source $config
+# Though that requires the script is NOT malicious
+
+
+
+# NOTE: We may want to change the underlying system ARP handling by changing:
+#  echo 2 > /proc/sys/net/ipv4/conf/eth0/arp_announce
+#  echo 1 > /proc/sys/net/ipv4/conf/eth0/arp_ignore
+# TODO:CHECK options required:DECIDE
+
+#------------------------------------------------------------------------------
+
+rundir_up() {
+  if [ ! -d "$RUNDIR" ] ; then
+    if ! mkdir -p "$RUNDIR" ; then
+      /bin/echo -e "Cannot create $RUNDIR"
+      exit 1
+    fi
+  fi
+  if [ ! -r "$STATEUP" ] ; then
+    if ! :> "$STATEUP" ; then
+      /bin/echo -e "Cannot initialise $STATEUP"
+      exit 1
+    fi
+  fi
+}
+
+#------------------------------------------------------------------------------
+
+# Bring interface up:
+#  arg1 H/W interface name
+#  arg2 virtual interface name
+vup() {
+  /bin/echo -e "TODO $1 $2"
+
+  /bin/echo /sbin/ip link add link $1 $2 type macvlan
+  /bin/echo -e "link "$?
+
+  /bin/echo /sbin/ip link set $2 up
+  /bin/echo -e "up "$?
+
+  /bin/echo /sbin/dhclient -pf $RUNDIR/dhclient_$2.pid $2
+  /bin/echo -e "dhclient "$?
+
+  # ip link add link eth0 mac0 type macvlan
+  # ip link set mac0 up
+  # dhclient -v mac0
+
+  # TODO: dhclient will run in the background
+  # so --no-pid if we do not want it writing the file
+  # or -pf /var/run/cnetmm/dhclient_<vlan>.pid
+
+  # NOTE:
+  #  ip link add link eth0 mac0 address 12:34:56:78:9A:BC type macvlan
+  # or optionally just use following after adding link:
+  #  ip link set mac0 address 12:34:56:78:9A:BC
+}
+
+vdown() {
+  #   terminate dhclient
+  #   del link
+# ip link del link eth0 mac0 type macvlan
+
+  #   rm pid files
+  /bin/echo -e "TODO"
+}
+
+#------------------------------------------------------------------------------
+
+# Bring up interfaces:
+bring_up() {
+  # call vup for each interface
+  # TODO: should be loop
+  vup "$HWIFACE" "$PREFIX"0
+  vup "$HWIFACE" "$PREFIX"1
+
+  /bin/echo -e "TODO"
+}
+
+# Take down all active interfaces:
+take_down() {
+  # call vdown for each interface
+  /bin/echo -e "TODO"
+}
+
+#------------------------------------------------------------------------------
+
+case "$1" in
+start)
+  if [ -r "$STATEUP" ] ; then
+    /bin/echo -e "Already active. Use:\r\n\t$0 stop\r\nto terminate previous configuration."
+    exit 1
+  else
+    rundir_up
+    bring_up
+  fi
+  ;;
+stop)
+  if [ -r "$STATEUP" ] ; then
+    take_down
+    rm "$STATEUP"
+  else
+    /bin/echo -e "Not active"
+  fi
+  ;;
+status)
+  if [ -r "$STATEUP" ] ; then
+    # - if active then display macvlan interface information
+    /bin/echo -e "TODO:status"
+  else
+    /bin/echo -e "Not active"
+  fi
+  ;;
+*)
+  echo "Usage: $0 {start|stop|status}"
+  exit 1
+  ;;
+esac
+
+exit 0

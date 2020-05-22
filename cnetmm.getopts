@@ -1,0 +1,102 @@
+#!/bin/bash
+#
+# Script to setup multiple macvlan interfaces to allow for testing
+# from a set of MAC addresses, without affecting the host main
+# interface.
+
+# NOTE: MacOSX does not seem to have modern getopt; so the following will not work:
+
+getopt --test > /dev/null
+if [[ $? -ne 4 ]]; then
+  echo "System does not have modern `getopt` installed. Terminating."
+  exit 1
+fi
+
+OPTIONS=hv
+LONGOPTIONS=help,verbose
+
+# -temporarily store output to be able to check for errors
+# -e.g. use “--options” parameter by name to activate quoting/enhanced mode
+# -pass arguments only via   -- "$@"   to separate them correctly
+PARSED=$(getopt --options=$OPTIONS --longoptions=$LONGOPTIONS --name "$0" -- "$@")
+if [[ $? -ne 0 ]]; then
+    # e.g. $? == 1
+    #  then getopt has complained about wrong arguments to stdout
+    exit 2
+fi
+# read getopt’s output this way to handle the quoting right:
+eval set -- "$PARSED"
+
+# now enjoy the options in order and nicely split until we see --
+while true; do
+    case "$1" in
+        -d|--debug)
+            d=y
+            shift
+            ;;
+        -v|--verbose)
+            v=y
+            shift
+            ;;
+        --)
+            shift
+            break
+            ;;
+        *)
+            echo "Programming error"
+            exit 3
+            ;;
+    esac
+done
+
+# handle non-option arguments
+if [[ $# -ne 1 ]]; then
+    echo "$0: A single input file is required."
+    exit 4
+fi
+
+echo "verbose: $v debug: $d in: $1"
+
+
+# default operation setup interfaces
+
+# command-line shutdown interfaces
+
+# name of hardware network interface to be used: e.g. "eth0"
+
+# if test -f ${cfg} ; then
+#   source ${cfg}
+# fi
+
+# optional number of interfaces to setup
+# optional config file with MACs to use
+# optional config file containing "dhcp" or fixed IPv4 and iPv6 addresses to use for interface
+# MAYBE:	<name>,[<mac>],dhcp|<IPv4>/<mask>[,<IPv6>]...]
+# Actually simplest is just to source config file:
+#  source $config
+# Though that requires the script is NOT malicious
+
+# ip link add link eth0 mac0 type macvlan
+# ip link set mac0 up
+# dhclient -v mac0
+
+# NOTE:
+#  ip link add link eth0 mac0 address 12:34:56:78:9A:BC type macvlan
+# or optionally just use following after adding link:
+#  ip link set mac0 address 12:34:56:78:9A:BC
+
+
+# ip link del link eth0 mac0 type macvlan
+
+# NOTE: We may want to change the underlying system ARP handling by changing:
+#  echo 2 > /proc/sys/net/ipv4/conf/eth0/arp_announce
+#  echo 1 > /proc/sys/net/ipv4/conf/eth0/arp_ignore
+# TODO:CHECK options required:DECIDE
+
+
+
+
+
+
+
+exit 0

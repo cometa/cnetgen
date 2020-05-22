@@ -1,0 +1,396 @@
+/* Request that worked:
+
+3170544	19982.691238608	5e:06:d7:69:ab:8b	0.0.0.0	Broadcast	255.255.255.255	DHCP	342	DHCP Request  - Transaction ID 0x1bb0822f
+
+0000   ff ff ff ff ff ff 5e 06 d7 69 ab 8b 08 00 45 10
+0010   01 48 00 00 00 00 80 11 39 96 00 00 00 00 ff ff
+0020   ff ff 00 44 00 43 01 34 a8 df 01 01 06 00 1b b0
+0030   82 2f 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+0040   00 00 00 00 00 00 5e 06 d7 69 ab 8b 00 00 00 00
+0050   00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+0060   00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+0070   00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+0080   00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+0090   00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+00a0   00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+00b0   00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+00c0   00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+00d0   00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+00e0   00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+00f0   00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+0100   00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+0110   00 00 00 00 00 00 63 82 53 63 35 01 03 36 04 c0
+0120   a8 01 01 32 04 c0 a8 01 f8 0c 07 70 69 33 77 6f
+0130   72 6b 37 0d 01 1c 02 03 0f 06 77 0c 2c 2f 1a 79
+0140   2a ff 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+0150   00 00 00 00 00 00
+
+Frame 3170544: 342 bytes on wire (2736 bits), 342 bytes captured (2736 bits) on interface 0
+Ethernet II, Src: 5e:06:d7:69:ab:8b (5e:06:d7:69:ab:8b), Dst: Broadcast (ff:ff:ff:ff:ff:ff)
+Internet Protocol Version 4, Src: 0.0.0.0, Dst: 255.255.255.255
+User Datagram Protocol, Src Port: 68, Dst Port: 67
+Bootstrap Protocol (Request)
+    Message type: Boot Request (1)
+    Hardware type: Ethernet (0x01)
+    Hardware address length: 6
+    Hops: 0
+    Transaction ID: 0x1bb0822f
+    Seconds elapsed: 0
+    Bootp flags: 0x0000 (Unicast)
+        0... .... .... .... = Broadcast flag: Unicast
+        .000 0000 0000 0000 = Reserved flags: 0x0000
+    Client IP address: 0.0.0.0
+    Your (client) IP address: 0.0.0.0
+    Next server IP address: 0.0.0.0
+    Relay agent IP address: 0.0.0.0
+    Client MAC address: 5e:06:d7:69:ab:8b (5e:06:d7:69:ab:8b)
+    Client hardware address padding: 00000000000000000000
+    Server host name not given
+    Boot file name not given
+    Magic cookie: DHCP
+    Option: (53) DHCP Message Type (Request)
+        Length: 1
+        DHCP: Request (3)
+    Option: (54) DHCP Server Identifier
+        Length: 4
+        DHCP Server Identifier: 192.168.1.1
+    Option: (50) Requested IP Address
+        Length: 4
+        Requested IP Address: 192.168.1.248
+    Option: (12) Host Name
+        Length: 7
+        Host Name: pi3work
+    Option: (55) Parameter Request List
+        Length: 13
+        Parameter Request List Item: (1) Subnet Mask
+        Parameter Request List Item: (28) Broadcast Address
+        Parameter Request List Item: (2) Time Offset
+        Parameter Request List Item: (3) Router
+        Parameter Request List Item: (15) Domain Name
+        Parameter Request List Item: (6) Domain Name Server
+        Parameter Request List Item: (119) Domain Search
+        Parameter Request List Item: (12) Host Name
+        Parameter Request List Item: (44) NetBIOS over TCP/IP Name Server
+        Parameter Request List Item: (47) NetBIOS over TCP/IP Scope
+        Parameter Request List Item: (26) Interface MTU
+        Parameter Request List Item: (121) Classless Static Route
+        Parameter Request List Item: (42) Network Time Protocol Servers
+    Option: (255) End
+        Option End: 255
+    Padding: 0000000000000000000000000000000000000000
+
+*/
+/* Request that gets NAK:
+
+3175129	20165.636688073	5e:06:d7:69:ab:8b	0.0.0.0	Broadcast	255.255.255.255	DHCP	298	DHCP Request  - Transaction ID 0x3000000
+
+0000   ff ff ff ff ff ff 5e 06 d7 69 ab 8b 08 00 45 10
+0010   01 1c 00 00 00 00 10 11 a9 c2 00 00 00 00 ff ff
+0020   ff ff 00 44 00 43 01 08 00 00 01 01 06 00 02 00
+0030   00 00 00 00 00 00 00 00 00 00 c0 a8 01 d8 c0 a8
+0040   01 01 00 00 00 00 5e 06 d7 69 ab 8b 00 00 00 00
+0050   00 00 15 00 00 00 00 00 00 00 00 00 00 00 00 00
+0060   00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+0070   00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+0080   00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+0090   00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+00a0   00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+00b0   00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+00c0   00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+00d0   00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+00e0   00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+00f0   00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+0100   00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+0110   00 00 00 00 00 00 63 82 53 63 35 01 03 32 04 c0
+0120   a8 01 d8 36 04 c0 a8 01 01 ff
+
+Frame 3175129: 298 bytes on wire (2384 bits), 298 bytes captured (2384 bits) on interface 0
+Ethernet II, Src: 5e:06:d7:69:ab:8b (5e:06:d7:69:ab:8b), Dst: Broadcast (ff:ff:ff:ff:ff:ff)
+Internet Protocol Version 4, Src: 0.0.0.0, Dst: 255.255.255.255
+User Datagram Protocol, Src Port: 68, Dst Port: 67
+Bootstrap Protocol (Request)
+    Message type: Boot Request (1)
+    Hardware type: Ethernet (0x01)
+    Hardware address length: 6
+    Hops: 0
+    Transaction ID: 0x03000000										<- DIFF
+    Seconds elapsed: 0
+    Bootp flags: 0x0000 (Unicast)
+        0... .... .... .... = Broadcast flag: Unicast
+        .000 0000 0000 0000 = Reserved flags: 0x0000
+    Client IP address: 0.0.0.0
+    Your (client) IP address: 192.168.1.216								<- original has 0.0.0.0		code now modified above
+    Next server IP address: 192.168.1.1									<- original has 0.0.0.0         code now modified above
+    Relay agent IP address: 0.0.0.0
+    Client MAC address: 5e:06:d7:69:ab:8b (5e:06:d7:69:ab:8b)
+    Client hardware address padding: 00000000000015000000
+    Server host name not given
+    Boot file name not given
+    Magic cookie: DHCP
+    Option: (53) DHCP Message Type (Request)
+        Length: 1
+        DHCP: Request (3)
+    Option: (50) Requested IP Address
+        Length: 4
+        Requested IP Address: 192.168.1.216
+    Option: (54) DHCP Server Identifier
+        Length: 4
+        DHCP Server Identifier: 192.168.1.1
+    Option: (255) End
+        Option End: 255
+*/
+
+#------------------------------------------------------------------------------
+
+sudo ./cnetmm start		but with modified MAC addresses
+
+
+jsmith@pi3work:~/work/cnetgen $ sudo tcpdump -v -v -v -i eth0 udp port 67 or udp port 68
+tcpdump: listening on eth0, link-type EN10MB (Ethernet), capture size 262144 bytes
+17:33:22.224261 IP (tos 0x10, ttl 128, id 0, offset 0, flags [none], proto UDP (17), length 328)
+    0.0.0.0.bootpc > 255.255.255.255.bootps: [udp sum ok] BOOTP/DHCP, Request from 12:34:56:78:00:00 (oui Unknown), length 300, xid 0x38f0c02d, Flags [none] (0x0000)
+	  Client-Ethernet-Address 12:34:56:78:00:00 (oui Unknown)
+	  Vendor-rfc1048 Extensions
+	    Magic Cookie 0x63825363
+	    DHCP-Message Option 53, length 1: Discover
+	    Hostname Option 12, length 7: "pi3work"
+	    Parameter-Request Option 55, length 13: 
+	      Subnet-Mask, BR, Time-Zone, Default-Gateway
+	      Domain-Name, Domain-Name-Server, Option 119, Hostname
+	      Netbios-Name-Server, Netbios-Scope, MTU, Classless-Static-Route
+	      NTP
+	    END Option 255, length 0
+	    PAD Option 0, length 0, occurs 32
+17:33:23.226244 IP (tos 0x10, ttl 128, id 0, offset 0, flags [none], proto UDP (17), length 328)
+    gateway.bootps > 192.168.1.238.bootpc: [udp sum ok] BOOTP/DHCP, Reply, length 300, xid 0x38f0c02d, Flags [none] (0x0000)
+	  Your-IP 192.168.1.238
+	  Client-Ethernet-Address 12:34:56:78:00:00 (oui Unknown)
+	  Vendor-rfc1048 Extensions
+	    Magic Cookie 0x63825363
+	    DHCP-Message Option 53, length 1: Offer
+	    Server-ID Option 54, length 4: gateway
+	    Lease-Time Option 51, length 4: 86400
+	    Subnet-Mask Option 1, length 4: 255.255.255.0
+	    Default-Gateway Option 3, length 4: gateway
+	    Domain-Name-Server Option 6, length 4: gateway
+	    T119 Option 119, length 18: 2674,24940,27769,29549,26996,26626,25455,629,27392
+	    END Option 255, length 0
+	    PAD Option 0, length 0, occurs 6
+17:33:23.227365 IP (tos 0x10, ttl 128, id 0, offset 0, flags [none], proto UDP (17), length 328)
+    0.0.0.0.bootpc > 255.255.255.255.bootps: [udp sum ok] BOOTP/DHCP, Request from 12:34:56:78:00:00 (oui Unknown), length 300, xid 0x38f0c02d, Flags [none] (0x0000)
+	  Client-Ethernet-Address 12:34:56:78:00:00 (oui Unknown)
+	  Vendor-rfc1048 Extensions
+	    Magic Cookie 0x63825363
+	    DHCP-Message Option 53, length 1: Request
+	    Server-ID Option 54, length 4: gateway
+	    Requested-IP Option 50, length 4: 192.168.1.238
+	    Hostname Option 12, length 7: "pi3work"
+	    Parameter-Request Option 55, length 13: 
+	      Subnet-Mask, BR, Time-Zone, Default-Gateway
+	      Domain-Name, Domain-Name-Server, Option 119, Hostname
+	      Netbios-Name-Server, Netbios-Scope, MTU, Classless-Static-Route
+	      NTP
+	    END Option 255, length 0
+	    PAD Option 0, length 0, occurs 20
+17:33:23.228767 IP (tos 0x10, ttl 128, id 0, offset 0, flags [none], proto UDP (17), length 328)
+    gateway.bootps > 192.168.1.238.bootpc: [udp sum ok] BOOTP/DHCP, Reply, length 300, xid 0x38f0c02d, Flags [none] (0x0000)
+	  Your-IP 192.168.1.238
+	  Client-Ethernet-Address 12:34:56:78:00:00 (oui Unknown)
+	  Vendor-rfc1048 Extensions
+	    Magic Cookie 0x63825363
+	    DHCP-Message Option 53, length 1: ACK
+	    Server-ID Option 54, length 4: gateway
+	    Lease-Time Option 51, length 4: 86400
+	    Subnet-Mask Option 1, length 4: 255.255.255.0
+	    Default-Gateway Option 3, length 4: gateway
+	    Domain-Name-Server Option 6, length 4: gateway
+	    T119 Option 119, length 18: 2674,24940,27769,29549,26996,26626,25455,629,27392
+	    END Option 255, length 0
+	    PAD Option 0, length 0, occurs 6
+17:33:23.434348 IP (tos 0x10, ttl 128, id 0, offset 0, flags [none], proto UDP (17), length 328)
+    0.0.0.0.bootpc > 255.255.255.255.bootps: [udp sum ok] BOOTP/DHCP, Request from 12:34:56:78:01:00 (oui Unknown), length 300, xid 0xc0f51400, Flags [none] (0x0000)
+	  Client-Ethernet-Address 12:34:56:78:01:00 (oui Unknown)
+	  Vendor-rfc1048 Extensions
+	    Magic Cookie 0x63825363
+	    DHCP-Message Option 53, length 1: Discover
+	    Hostname Option 12, length 7: "pi3work"
+	    Parameter-Request Option 55, length 13: 
+	      Subnet-Mask, BR, Time-Zone, Default-Gateway
+	      Domain-Name, Domain-Name-Server, Option 119, Hostname
+	      Netbios-Name-Server, Netbios-Scope, MTU, Classless-Static-Route
+	      NTP
+	    END Option 255, length 0
+	    PAD Option 0, length 0, occurs 32
+17:33:24.435455 IP (tos 0x10, ttl 128, id 0, offset 0, flags [none], proto UDP (17), length 328)
+    gateway.bootps > 192.168.1.239.bootpc: [udp sum ok] BOOTP/DHCP, Reply, length 300, xid 0xc0f51400, Flags [none] (0x0000)
+	  Your-IP 192.168.1.239
+	  Client-Ethernet-Address 12:34:56:78:01:00 (oui Unknown)
+	  Vendor-rfc1048 Extensions
+	    Magic Cookie 0x63825363
+	    DHCP-Message Option 53, length 1: Offer
+	    Server-ID Option 54, length 4: gateway
+	    Lease-Time Option 51, length 4: 86400
+	    Subnet-Mask Option 1, length 4: 255.255.255.0
+	    Default-Gateway Option 3, length 4: gateway
+	    Domain-Name-Server Option 6, length 4: gateway
+	    T119 Option 119, length 18: 2674,24940,27769,29549,26996,26626,25455,629,27392
+	    END Option 255, length 0
+	    PAD Option 0, length 0, occurs 6
+17:33:24.435902 IP (tos 0x10, ttl 128, id 0, offset 0, flags [none], proto UDP (17), length 328)
+    0.0.0.0.bootpc > 255.255.255.255.bootps: [udp sum ok] BOOTP/DHCP, Request from 12:34:56:78:01:00 (oui Unknown), length 300, xid 0xc0f51400, Flags [none] (0x0000)
+	  Client-Ethernet-Address 12:34:56:78:01:00 (oui Unknown)
+	  Vendor-rfc1048 Extensions
+	    Magic Cookie 0x63825363
+	    DHCP-Message Option 53, length 1: Request
+	    Server-ID Option 54, length 4: gateway
+	    Requested-IP Option 50, length 4: 192.168.1.239
+	    Hostname Option 12, length 7: "pi3work"
+	    Parameter-Request Option 55, length 13: 
+	      Subnet-Mask, BR, Time-Zone, Default-Gateway
+	      Domain-Name, Domain-Name-Server, Option 119, Hostname
+	      Netbios-Name-Server, Netbios-Scope, MTU, Classless-Static-Route
+	      NTP
+	    END Option 255, length 0
+	    PAD Option 0, length 0, occurs 20
+17:33:24.437456 IP (tos 0x10, ttl 128, id 0, offset 0, flags [none], proto UDP (17), length 328)
+    gateway.bootps > 192.168.1.239.bootpc: [udp sum ok] BOOTP/DHCP, Reply, length 300, xid 0xc0f51400, Flags [none] (0x0000)
+	  Your-IP 192.168.1.239
+	  Client-Ethernet-Address 12:34:56:78:01:00 (oui Unknown)
+	  Vendor-rfc1048 Extensions
+	    Magic Cookie 0x63825363
+	    DHCP-Message Option 53, length 1: ACK
+	    Server-ID Option 54, length 4: gateway
+	    Lease-Time Option 51, length 4: 86400
+	    Subnet-Mask Option 1, length 4: 255.255.255.0
+	    Default-Gateway Option 3, length 4: gateway
+	    Domain-Name-Server Option 6, length 4: gateway
+	    T119 Option 119, length 18: 2674,24940,27769,29549,26996,26626,25455,629,27392
+	    END Option 255, length 0
+	    PAD Option 0, length 0, occurs 6
+17:33:24.654266 IP (tos 0x10, ttl 128, id 0, offset 0, flags [none], proto UDP (17), length 328)
+    0.0.0.0.bootpc > 255.255.255.255.bootps: [udp sum ok] BOOTP/DHCP, Request from 12:34:56:78:02:00 (oui Unknown), length 300, xid 0x4ef23e00, Flags [none] (0x0000)
+	  Client-Ethernet-Address 12:34:56:78:02:00 (oui Unknown)
+	  Vendor-rfc1048 Extensions
+	    Magic Cookie 0x63825363
+	    DHCP-Message Option 53, length 1: Discover
+	    Hostname Option 12, length 7: "pi3work"
+	    Parameter-Request Option 55, length 13: 
+	      Subnet-Mask, BR, Time-Zone, Default-Gateway
+	      Domain-Name, Domain-Name-Server, Option 119, Hostname
+	      Netbios-Name-Server, Netbios-Scope, MTU, Classless-Static-Route
+	      NTP
+	    END Option 255, length 0
+	    PAD Option 0, length 0, occurs 32
+17:33:25.655512 IP (tos 0x10, ttl 128, id 0, offset 0, flags [none], proto UDP (17), length 328)
+    gateway.bootps > 192.168.1.240.bootpc: [udp sum ok] BOOTP/DHCP, Reply, length 300, xid 0x4ef23e00, Flags [none] (0x0000)
+	  Your-IP 192.168.1.240
+	  Client-Ethernet-Address 12:34:56:78:02:00 (oui Unknown)
+	  Vendor-rfc1048 Extensions
+	    Magic Cookie 0x63825363
+	    DHCP-Message Option 53, length 1: Offer
+	    Server-ID Option 54, length 4: gateway
+	    Lease-Time Option 51, length 4: 86400
+	    Subnet-Mask Option 1, length 4: 255.255.255.0
+	    Default-Gateway Option 3, length 4: gateway
+	    Domain-Name-Server Option 6, length 4: gateway
+	    T119 Option 119, length 18: 2674,24940,27769,29549,26996,26626,25455,629,27392
+	    END Option 255, length 0
+	    PAD Option 0, length 0, occurs 6
+17:33:25.655963 IP (tos 0x10, ttl 128, id 0, offset 0, flags [none], proto UDP (17), length 328)
+    0.0.0.0.bootpc > 255.255.255.255.bootps: [udp sum ok] BOOTP/DHCP, Request from 12:34:56:78:02:00 (oui Unknown), length 300, xid 0x4ef23e00, Flags [none] (0x0000)
+	  Client-Ethernet-Address 12:34:56:78:02:00 (oui Unknown)
+	  Vendor-rfc1048 Extensions
+	    Magic Cookie 0x63825363
+	    DHCP-Message Option 53, length 1: Request
+	    Server-ID Option 54, length 4: gateway
+	    Requested-IP Option 50, length 4: 192.168.1.240
+	    Hostname Option 12, length 7: "pi3work"
+	    Parameter-Request Option 55, length 13: 
+	      Subnet-Mask, BR, Time-Zone, Default-Gateway
+	      Domain-Name, Domain-Name-Server, Option 119, Hostname
+	      Netbios-Name-Server, Netbios-Scope, MTU, Classless-Static-Route
+	      NTP
+	    END Option 255, length 0
+	    PAD Option 0, length 0, occurs 20
+17:33:25.657615 IP (tos 0x10, ttl 128, id 0, offset 0, flags [none], proto UDP (17), length 328)
+    gateway.bootps > 192.168.1.240.bootpc: [udp sum ok] BOOTP/DHCP, Reply, length 300, xid 0x4ef23e00, Flags [none] (0x0000)
+	  Your-IP 192.168.1.240
+	  Client-Ethernet-Address 12:34:56:78:02:00 (oui Unknown)
+	  Vendor-rfc1048 Extensions
+	    Magic Cookie 0x63825363
+	    DHCP-Message Option 53, length 1: ACK
+	    Server-ID Option 54, length 4: gateway
+	    Lease-Time Option 51, length 4: 86400
+	    Subnet-Mask Option 1, length 4: 255.255.255.0
+	    Default-Gateway Option 3, length 4: gateway
+	    Domain-Name-Server Option 6, length 4: gateway
+	    T119 Option 119, length 18: 2674,24940,27769,29549,26996,26626,25455,629,27392
+	    END Option 255, length 0
+	    PAD Option 0, length 0, occurs 6
+17:33:25.895508 IP (tos 0x10, ttl 128, id 0, offset 0, flags [none], proto UDP (17), length 328)
+    0.0.0.0.bootpc > 255.255.255.255.bootps: [udp sum ok] BOOTP/DHCP, Request from 12:34:56:78:03:00 (oui Unknown), length 300, xid 0xc389542e, Flags [none] (0x0000)
+	  Client-Ethernet-Address 12:34:56:78:03:00 (oui Unknown)
+	  Vendor-rfc1048 Extensions
+	    Magic Cookie 0x63825363
+	    DHCP-Message Option 53, length 1: Discover
+	    Hostname Option 12, length 7: "pi3work"
+	    Parameter-Request Option 55, length 13: 
+	      Subnet-Mask, BR, Time-Zone, Default-Gateway
+	      Domain-Name, Domain-Name-Server, Option 119, Hostname
+	      Netbios-Name-Server, Netbios-Scope, MTU, Classless-Static-Route
+	      NTP
+	    END Option 255, length 0
+	    PAD Option 0, length 0, occurs 32
+17:33:26.896724 IP (tos 0x10, ttl 128, id 0, offset 0, flags [none], proto UDP (17), length 328)
+    gateway.bootps > 192.168.1.236.bootpc: [udp sum ok] BOOTP/DHCP, Reply, length 300, xid 0xc389542e, Flags [none] (0x0000)
+	  Your-IP 192.168.1.236
+	  Client-Ethernet-Address 12:34:56:78:03:00 (oui Unknown)
+	  Vendor-rfc1048 Extensions
+	    Magic Cookie 0x63825363
+	    DHCP-Message Option 53, length 1: Offer
+	    Server-ID Option 54, length 4: gateway
+	    Lease-Time Option 51, length 4: 86400
+	    Subnet-Mask Option 1, length 4: 255.255.255.0
+	    Default-Gateway Option 3, length 4: gateway
+	    Domain-Name-Server Option 6, length 4: gateway
+	    T119 Option 119, length 18: 2674,24940,27769,29549,26996,26626,25455,629,27392
+	    END Option 255, length 0
+	    PAD Option 0, length 0, occurs 6
+17:33:26.899203 IP (tos 0x10, ttl 128, id 0, offset 0, flags [none], proto UDP (17), length 328)
+    0.0.0.0.bootpc > 255.255.255.255.bootps: [udp sum ok] BOOTP/DHCP, Request from 12:34:56:78:03:00 (oui Unknown), length 300, xid 0xc389542e, Flags [none] (0x0000)
+	  Client-Ethernet-Address 12:34:56:78:03:00 (oui Unknown)
+	  Vendor-rfc1048 Extensions
+	    Magic Cookie 0x63825363
+	    DHCP-Message Option 53, length 1: Request
+	    Server-ID Option 54, length 4: gateway
+	    Requested-IP Option 50, length 4: 192.168.1.236
+	    Hostname Option 12, length 7: "pi3work"
+	    Parameter-Request Option 55, length 13: 
+	      Subnet-Mask, BR, Time-Zone, Default-Gateway
+	      Domain-Name, Domain-Name-Server, Option 119, Hostname
+	      Netbios-Name-Server, Netbios-Scope, MTU, Classless-Static-Route
+	      NTP
+	    END Option 255, length 0
+	    PAD Option 0, length 0, occurs 20
+17:33:26.900728 IP (tos 0x10, ttl 128, id 0, offset 0, flags [none], proto UDP (17), length 328)
+    gateway.bootps > 192.168.1.236.bootpc: [udp sum ok] BOOTP/DHCP, Reply, length 300, xid 0xc389542e, Flags [none] (0x0000)
+	  Your-IP 192.168.1.236
+	  Client-Ethernet-Address 12:34:56:78:03:00 (oui Unknown)
+	  Vendor-rfc1048 Extensions
+	    Magic Cookie 0x63825363
+	    DHCP-Message Option 53, length 1: ACK
+	    Server-ID Option 54, length 4: gateway
+	    Lease-Time Option 51, length 4: 86400
+	    Subnet-Mask Option 1, length 4: 255.255.255.0
+	    Default-Gateway Option 3, length 4: gateway
+	    Domain-Name-Server Option 6, length 4: gateway
+	    T119 Option 119, length 18: 2674,24940,27769,29549,26996,26626,25455,629,27392
+	    END Option 255, length 0
+	    PAD Option 0, length 0, occurs 6
+^C
+16 packets captured
+16 packets received by filter
+0 packets dropped by kernel
+2 packets dropped by interface
+
+#------------------------------------------------------------------------------

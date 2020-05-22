@@ -1,0 +1,94 @@
+#! /bin/sh
+set -e
+if which libtoolize > /dev/null
+then
+ LIBTOOLIZE=`which libtoolize`
+else
+ echo "ERROR: Failed to find libtoolize"
+ exit 1
+fi
+
+#------------------------------------------------------------------------------
+# The following is NOT ideal, but avoids the user having to configure
+# and build the dependencies seperately. It would be good just to be
+# able to use the AC_CONFIG_SUBDIRS support and have nested configure,
+# which works *IF* we do not need to set different configuration
+# options for the packages.
+
+VEROPENSSL="openssl-1.1.0g"
+VERLIBCURL="curl-7.56.1"
+
+PKGOPENSSL="$VEROPENSSL.tar.gz"
+PKGLIBCURL="$VERLIBCURL.tar.gz"
+
+if [ -L "packages" ]; then
+ rm packages
+fi
+if [ ! -d "packages" ]; then
+ mkdir -p packages
+fi
+
+if [ ! -f "packages/$PKGOPENSSL" ]; then
+ curl -s -o packages/$PKGOPENSSL https://www.openssl.org/source/$PKGOPENSSL 
+fi
+
+if [ ! -f "packages/$PKGLIBCURL" ]; then
+ curl -s -o packages/$PKGLIBCURL https://curl.haxx.se/download/$PKGLIBCURL
+fi
+
+if [ -L "dependencies" ]; then
+ rm dependencies
+fi
+if [ ! -d "dependencies" ]; then
+ mkdir -p dependencies
+fi
+
+PREFIXDEPENDENCIES=`(cd dependencies; pwd)`
+
+if [ ! -d "dependencies/$VEROPENSSL" ]; then
+ (cd dependencies; tar xzf ../packages/$PKGOPENSSL; cd $VEROPENSSL; make distclean)
+fi
+
+if [ ! -d "dependencies/build_openssl" ]; then
+ mkdir -p dependencies/build_openssl
+ (cd dependencies/build_openssl; ../$VEROPENSSL/config --prefix=$PREFIXDEPENDENCIES/install_openssl --debug; make)
+fi
+
+if [ ! -d "dependencies/install_openssl" ]; then
+ (cd dependencies/build_openssl; make install)
+fi
+
+if [ ! -d "dependencies/$VERLIBCURL" ]; then
+ (cd dependencies; tar xzf ../packages/$PKGLIBCURL)
+fi
+
+if [ ! -d "dependencies/build_curl" ]; then
+ mkdir -p dependencies/build_curl
+ (cd dependencies/build_curl; PKG_CONFIG_PATH=$PREFIXDEPENDENCIES/install_openssl/lib/pkgconfig ../$VERLIBCURL/configure --prefix=$PREFIXDEPENDENCIES/install_curl --enable-debug --disable-shared --enable-static; make)
+fi
+
+if [ ! -d "dependencies/install_curl" ]; then
+ (cd dependencies/build_curl; make install)
+fi
+
+#PKG_CONFIG_PATH=$PREFIXDEPENDENCIES/install_openssl/lib/pkgconfig:$PREFIXDEPENDENCIES/install_curl/lib/pkgconfig
+#export PKG_CONFIG_PATH
+
+#------------------------------------------------------------------------------
+# Back to normal package configuration:
+
+${LIBTOOLIZE}
+
+if [ -e /usr/share/aclocal ]
+then
+ aclocal -I /usr/share/aclocal
+else
+ aclocal
+fi
+
+# NOTE: autoconf creates configure
+autoconf
+automake --foreign --add-missing --copy
+
+#( PKG_CONFIG_PATH=$PREFIXDEPENDENCIES/install_openssl/lib/pkgconfig:$PREFIXDEPENDENCIES/install_curl/lib/pkgconfig autoconf)
+#( PKG_CONFIG_PATH=$PREFIXDEPENDENCIES/install_openssl/lib/pkgconfig:$PREFIXDEPENDENCIES/install_curl/lib/pkgconfig automake --foreign --add-missing --copy)

@@ -1,0 +1,130 @@
+#!/bin/bash
+#
+# Script to setup multiple macvlan interfaces to allow for testing
+# from a set of MAC addresses, without affecting the host main
+# interface.
+
+# start
+# stop
+
+[ -x /sbin/ip ] || exit 0
+[ -x /sbin/dhclient ] || exit 0
+
+
+
+
+# parse the arguments which should work on Linux and MacOSX
+COUNTER=0
+ARGS=("$@")
+while [ $COUNTER -lt $# ]
+do
+  arg=${ARGS[$COUNTER]}
+  let COUNTER=COUNTER+1
+  nextArg=${ARGS[$COUNTER]}
+
+  if [[ $skipNext -eq 1 ]]; then
+    echo "Skipping"
+    skipNext=0
+    continue
+  fi
+
+  argKey=""
+  argVal=""
+  if [[ "$arg" =~ ^\- ]]; then
+    # if the format is: -key=value
+    if [[ "$arg" =~ \= ]]; then
+      argVal=$(echo "$arg" | cut -d'=' -f2)
+      argKey=$(echo "$arg" | cut -d'=' -f1)
+      skipNext=0
+
+    # if the format is: -key value
+    elif [[ ! "$nextArg" =~ ^\- ]]; then
+      argKey="$arg"
+      argVal="$nextArg"
+      skipNext=1
+
+    # if the format is: -key (a boolean flag)
+    elif [[ "$nextArg" =~ ^\- ]] || [[ -z "$nextArg" ]]; then
+      argKey="$arg"
+      argVal=""
+      skipNext=0
+    fi
+  # if the format has not flag, just a value.
+  else
+    argKey=""
+    argVal="$arg"
+    skipNext=0
+  fi
+
+  case "$argKey" in 
+    --source-scmurl)
+      SOURCE_URL="$argVal"
+    ;;
+    --dest-scmurl)
+      DEST_URL="$argVal"
+    ;;
+    --version-num)
+      VERSION_NUM="$argVal"
+    ;;
+    -c|--clean)
+      CLEAN_BEFORE_START="1"
+    ;;
+    -h|--help|-help|--h)
+      showUsage
+      exit
+    ;;
+  esac
+done
+
+# TODO: For simplicity should just require a configuration file listing the macvlan interfaces to create
+# e.g.
+#  mac0 type macvlan
+#  mac1 address 12:34:56:78:9A:BC type macvlan
+
+
+# default operation setup interfaces
+
+# command-line shutdown interfaces
+
+# name of hardware network interface to be used: e.g. "eth0"
+
+# if test -f ${cfg} ; then
+#   source ${cfg}
+# fi
+
+# optional number of interfaces to setup
+# optional config file with MACs to use
+# optional config file containing "dhcp" or fixed IPv4 and iPv6 addresses to use for interface
+# MAYBE:	<name>,[<mac>],dhcp|<IPv4>/<mask>[,<IPv6>]...]
+# Actually simplest is just to source config file:
+#  source $config
+# Though that requires the script is NOT malicious
+
+# ip link add link eth0 mac0 type macvlan
+# ip link set mac0 up
+# dhclient -v mac0
+
+# TODO: dhclient will run in the background
+# so --no-pid if we do not want it writing the file
+# or -pf /var/run/cn_dhclient_<vlan>.pid
+
+# NOTE:
+#  ip link add link eth0 mac0 address 12:34:56:78:9A:BC type macvlan
+# or optionally just use following after adding link:
+#  ip link set mac0 address 12:34:56:78:9A:BC
+
+
+# ip link del link eth0 mac0 type macvlan
+
+# NOTE: We may want to change the underlying system ARP handling by changing:
+#  echo 2 > /proc/sys/net/ipv4/conf/eth0/arp_announce
+#  echo 1 > /proc/sys/net/ipv4/conf/eth0/arp_ignore
+# TODO:CHECK options required:DECIDE
+
+
+
+
+
+
+
+exit 0

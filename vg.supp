@@ -1,0 +1,71 @@
+{
+  libssl_init
+  Memcheck:Leak
+  fun:malloc
+  ...
+  fun:SSL_library_init
+  ...
+}
+{
+  libssl_load
+  Memcheck:Leak
+  ...
+  fun:SSL_load_error_strings
+  ...
+}
+{
+  libssl_ctx
+  Memcheck:Leak
+  ...
+  fun:SSL_CTX_new
+  ...
+}
+{
+  crypto_digests
+  Memcheck:Leak
+  ...
+  fun:OpenSSL_add_all_digests
+  ...
+}
+{
+  crypto_digest_EVP
+  Memcheck:Leak
+  ...
+  fun:EVP_add_digest
+  ...
+}
+{
+  crypto_load
+  Memcheck:Leak
+  ...
+  fun:ERR_load_strings
+  ...
+}
+{
+  crypto_add_algo
+  Memcheck:Leak
+  ...
+  fun:OPENSSL_add_all_algorithms_noconf
+  ...
+}
+{
+  crypto_X509
+  Memcheck:Leak
+  ...
+  fun:X509_STORE_load_locations
+  ...
+}
+{
+  crypto_X509_loadcert
+  Memcheck:Leak
+  ...
+  fun:X509_load_cert_crl_file
+  ...
+}
+{
+  crypto_ASN1
+  Memcheck:Leak
+  ...
+  fun:ASN1_item_ex_d2i
+  ...
+}

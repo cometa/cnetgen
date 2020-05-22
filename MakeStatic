@@ -1,0 +1,102 @@
+#> MakeStatic
+#
+# This is a quick hack to build cnetgen against locally built static
+# dependencies. Use:
+#	make -f MakeStatic
+#
+#------------------------------------------------------------------------------
+
+TARGETS = src/cnetgen
+
+all: ${TARGETS}
+
+#------------------------------------------------------------------------------
+
+# The TOPDIR is the local directory where we are building
+TOPDIR=$(shell pwd)
+
+# The BUILDTREE is the local directory we create to hold the targetted build:
+BUILDTREE=$(shell mkdir -p dependencies;cd dependencies;pwd)
+
+# The PKGTREE holds downloaded 3rd-party source releases:
+PKGTREE=$(shell mkdir -p packages;cd packages;pwd)
+
+#------------------------------------------------------------------------------
+
+VEROPENSSL = openssl-1.1.0g
+PKGOPENSSL = ${VEROPENSSL}.tar.gz
+FILEOPENSSL = https://www.openssl.org/source/${PKGOPENSSL}
+
+${PKGTREE}/$(notdir ${FILEOPENSSL}):
+	@mkdir -p ${PKGTREE}
+	@echo "====> Downloading OpenSSL"
+	@(cd ${PKGTREE}; curl --silent --location ${FILEOPENSSL} --output $(notdir ${FILEOPENSSL}))
+
+${BUILDTREE}/.srcopenssl: ${PKGTREE}/$(notdir ${FILEOPENSSL})
+	@mkdir -p ${BUILDTREE}
+	@echo "====> Extracting OpenSSL"
+	@(cd ${BUILDTREE}; tar xzf ${PKGTREE}/$(notdir ${FILEOPENSSL}))
+	@touch $@
+
+${BUILDTREE}/.cfgopenssl: ${BUILDTREE}/.srcopenssl
+	@echo "====> Configuring OpenSSL"
+	@(cd ${BUILDTREE}/${VEROPENSSL}; ./config --prefix=${BUILDTREE}/install_openssl --debug)
+	@touch $@
+
+${BUILDTREE}/.openssl: ${BUILDTREE}/.cfgopenssl
+	@echo "====> Building OpenSSL"
+	@(cd ${BUILDTREE}/${VEROPENSSL}; ${MAKE}; ${MAKE} install)
+	@touch $@
+
+#------------------------------------------------------------------------------
+
+VERCURL = curl-7.56.1
+PKGCURL = ${VERCURL}.tar.gz
+FILECURL = https://curl.haxx.se/download/${PKGCURL}
+
+${PKGTREE}/$(notdir ${FILECURL}):
+	@mkdir -p ${PKGTREE}
+	@echo "====> Downloading Curl"
+	@(cd ${PKGTREE}; curl --silent --location ${FILECURL} --output $(notdir ${FILECURL}))
+
+${BUILDTREE}/.srccurl: ${PKGTREE}/$(notdir ${FILECURL})
+	@mkdir -p ${BUILDTREE}
+	@echo "====> Extracting Curl"
+	@(cd ${BUILDTREE}; tar xzf ${PKGTREE}/$(notdir ${FILECURL}))
+	@touch $@
+
+${BUILDTREE}/.cfgcurl: ${BUILDTREE}/.srccurl
+	@echo "====> Configuring Curl"
+	@(cd ${BUILDTREE}/${VERCURL}; PKG_CONFIG_PATH=${BUILDTREE}/install_openssl/lib/pkgconfig ./configure --prefix=${BUILDTREE}/install_curl --enable-debug --disable-shared --enable-static)
+	@touch $@
+
+${BUILDTREE}/.curl: ${BUILDTREE}/.cfgcurl
+	@echo "====> Building Curl"
+	@(cd ${BUILDTREE}/${VERCURL}; ${MAKE}; ${MAKE} install)
+	@touch $@
+
+#------------------------------------------------------------------------------
+
+src/cnetgen: ${BUILDTREE}/.openssl ${BUILDTREE}/.curl
+	@echo "====> Static dependencies done"
+	@sh bootstrap
+	@PKG_CONFIG_PATH=${BUILDTREE}/install_openssl/lib/pkgconfig:${BUILDTREE}/install_curl/lib/pkgconfig ./configure --enable-debug
+	@${MAKE}
+
+#------------------------------------------------------------------------------
+
+.PHONY: clean
+clean:
+	@rm -rf ${TARGETS} src/*.o
+
+.PHONY: fullclean
+fullclean: clean
+	@rm -rf ${BUILDTREE}
+
+.PHONY: distclean
+distclean: fullclean
+	@rm -rf ${PKGTREE}
+	@rm -rf aclocal.m4 autom4te.cache compile config.guess config.status config.log config.sub configure depcomp install-sh ltmain.sh m4 Makefile.in Makefile missing src/Makefile.in src/Makefile libtool
+
+#------------------------------------------------------------------------------
+#> EOF MakeStatic

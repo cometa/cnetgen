@@ -1,0 +1,10 @@
+# examples
+
+# mac0 DHCP but with explicit MAC address
+[mac0]
+address=12:34:56:78:9A:BC
+
+# mac1 IPv4 (but system supplied MAC)
+[mac1]
+ip4addr=192.168.2.10
+ip4netmask=255.255.255.0

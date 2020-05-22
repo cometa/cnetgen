@@ -1,0 +1,13 @@
+JmDNS-IP-1.local
+ecospro.local
+a2f53023-d95a-ed50-2ebe-60f3ff21f480.local
+Android.local
+SyzygyPad.local
+BRAVIA-4K-GB-a2f53023d95aed502ebe60f3ff21f480._googlecast._tcp.local
+DESKTOP-UNQKIR2.local
+dlinkrouter.local
+DS-2CD2142FWD-I20161216BBWR692922107.local
+DS-2CD2142FWD-I20161216BBWR692922165.local
+R6250.local
+Samsung M267x 287x Series (SEC30CDA7BE6983)._privet._tcp.local
+Viktorijas-MacBook-Air.local
